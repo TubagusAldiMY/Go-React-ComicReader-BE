@@ -1,37 +1,60 @@
+// cmd/api/main.go
 package main
 
 import (
+	"context"
 	"fmt"
-	"github.com/TubagusAldiMY/Go-React-ComicReader-Be/internal/config"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
-	// Pastikan path ini sesuai dengan go.mod Anda
+	"github.com/TubagusAldiMY/Go-React-ComicReader-Be/internal/config"
+	"github.com/TubagusAldiMY/Go-React-ComicReader-Be/internal/platform/database"
 	"github.com/TubagusAldiMY/Go-React-ComicReader-Be/internal/router"
 )
 
 func main() {
-	// Konfigurasi port server
-	// Muat konfigurasi aplikasi
-	cfg := config.LoadConfig() // cfg akan berisi semua konfigurasi kita
-	// Anda bisa menggunakan environment variable atau default ke port tertentu
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080" // Port default jika tidak ada env var PORT
-	}
+	cfg := config.LoadConfig()
 
-	// Inisialisasi router
-	appRouter := router.NewRouter() // Nanti kita bisa pass cfg ke NewRouter jika diperlukan
+	dbPool, err := database.ConnectDB(cfg)
+	if err != nil {
+		log.Fatalf("FATAL: Could not connect to database: %v", err)
+	}
+	defer database.CloseDB() // database.DB akan di-close di sini jika masih menggunakan global var di CloseDB
+
+	// Sekarang dbPool digunakan saat memanggil NewRouter
+	appRouter := router.NewRouter(dbPool)
 
 	log.Printf("Starting TubsComic API server on port %s...\n", cfg.Port)
-	log.Printf("Health check available at http://localhost:%s/health\n", cfg.Port)
-	log.Printf("Database URL: %s (sensitive info, hide in production logs)\n", cfg.DatabaseURL) // Hati-hati menampilkan ini di log produksi
-	log.Printf("Supabase URL: %s\n", cfg.SupabaseURL)
 
-	// Mulai HTTP server
-	err := http.ListenAndServe(fmt.Sprintf(":%s", cfg.Port), appRouter)
-	if err != nil {
-		log.Fatalf("Could not start server: %s\n", err.Error())
+	srv := &http.Server{
+		Addr:    fmt.Sprintf(":%s", cfg.Port),
+		Handler: appRouter,
+		// ReadTimeout:  10 * time.Second,
+		// WriteTimeout: 10 * time.Second,
+		// IdleTimeout:  120 * time.Second,
+	}
+
+	go func() {
+		quit := make(chan os.Signal, 1)
+		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+		<-quit
+		log.Println("Shutting down server...")
+
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		if err := srv.Shutdown(ctx); err != nil {
+			log.Fatalf("Server forced to shutdown: %v", err)
+		}
+		log.Println("Server exited properly")
+	}()
+
+	log.Printf("Server listening on %s. Press Ctrl+C to quit.", srv.Addr)
+	if err := srv.ListenAndServe(); err != http.ErrServerClosed {
+		log.Fatalf("Could not listen on %s: %v\n", srv.Addr, err)
 	}
 }
