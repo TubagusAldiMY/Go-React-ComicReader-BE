@@ -3,6 +3,9 @@ package router
 
 import (
 	"encoding/json"
+	"github.com/TubagusAldiMY/Go-React-ComicReader-Be/internal/core/service"
+	http_handler "github.com/TubagusAldiMY/Go-React-ComicReader-Be/internal/handler/http"
+	"github.com/TubagusAldiMY/Go-React-ComicReader-Be/internal/platform/database"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -29,12 +32,23 @@ func NewRouter(db *pgxpool.Pool) http.Handler {
 		json.NewEncoder(w).Encode(response)
 	})
 
-	// Di sini nanti kita akan menambahkan grup rute untuk API v1,
-	// dan kita akan pass 'db' ke handler yang memerlukannya.
-	// Contoh:
-	// comicService := service.NewComicService(db) // Akan kita buat nanti
-	// comicHandler := http_handler.NewComicHandler(comicService) // Akan kita buat nanti
-	// r.Mount("/api/v1", apiV1Routes(comicHandler)) // apiV1Routes juga perlu diubah untuk pass handler
+	// === Inisialisasi Layer untuk Fitur Genre ===
+	// 1. Repository
+	genreRepo := database.NewGenreRepository(db)
+	// 2. Service
+	genreService := service.NewGenreService(genreRepo)
+	// 3. Handler
+	genreHandler := http_handler.NewGenreHandler(genreService)
+
+	// === Rute untuk API v1 ===
+	r.Route("/api/v1", func(r chi.Router) {
+		// Rute untuk Genre
+		r.Get("/genres", genreHandler.ListGenres)
+
+		// Rute untuk Komik akan ditambahkan di sini nanti
+		// r.Get("/comics", comicHandler.ListComics)
+		// ... dan seterusnya
+	})
 
 	return r
 }
