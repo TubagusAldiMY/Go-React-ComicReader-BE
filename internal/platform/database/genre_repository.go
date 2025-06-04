@@ -3,6 +3,8 @@ package database
 
 import (
 	"context"
+	"errors"
+	"github.com/jackc/pgx/v5"
 	"log"
 
 	"github.com/TubagusAldiMY/Go-React-ComicReader-Be/internal/core/domain" // Sesuaikan path
@@ -60,4 +62,21 @@ func (r *genreRepository) Create(ctx context.Context, genre *domain.Genre) error
 		return err
 	}
 	return nil
+}
+
+// GetBySlug mengambil satu genre berdasarkan slug-nya.
+func (r *genreRepository) GetBySlug(ctx context.Context, slug string) (*domain.Genre, error) {
+	query := `SELECT id, name, slug, created_at, updated_at FROM genres WHERE slug = $1`
+	var g domain.Genre
+
+	err := r.db.QueryRow(ctx, query, slug).Scan(&g.ID, &g.Name, &g.Slug, &g.CreatedAt, &g.UpdatedAt)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			log.Printf("No genre found with slug %s: %v\n", slug, err)
+			return nil, domain.ErrDataNotFound // Kita akan definisikan error ini
+		}
+		log.Printf("Error querying genre by slug %s: %v\n", slug, err)
+		return nil, err
+	}
+	return &g, nil
 }

@@ -46,6 +46,7 @@ func NewRouter(db *pgxpool.Pool) http.Handler {
 
 		// --- Rute Publik ---
 		r.Get("/genres", genreHandler.ListGenres)
+		r.Get("/genres/{genreSlug}", genreHandler.GetGenreBySlug)
 	})
 
 	return r

@@ -10,5 +10,6 @@ import (
 // GenreRepository mendefinisikan operasi yang bisa dilakukan pada data genre.
 type GenreRepository interface {
 	List(ctx context.Context) ([]domain.Genre, error)
-	Create(ctx context.Context, genre *domain.Genre) error // Method baru
+	Create(ctx context.Context, genre *domain.Genre) error
+	GetBySlug(ctx context.Context, slug string) (*domain.Genre, error)
 }

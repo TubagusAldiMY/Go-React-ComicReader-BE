@@ -10,5 +10,6 @@ import (
 // GenreService mendefinisikan operasi logika bisnis untuk genre.
 type GenreService interface {
 	ListAll(ctx context.Context) ([]domain.Genre, error)
-	CreateNewGenre(ctx context.Context, name string) (*domain.Genre, error) // Method baru
+	CreateNewGenre(ctx context.Context, name string) (*domain.Genre, error)
+	FindGenreBySlug(ctx context.Context, slug string) (*domain.Genre, error)
 }

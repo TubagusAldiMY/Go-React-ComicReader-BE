@@ -3,6 +3,9 @@ package http_handler // Menggunakan http_handler untuk menghindari konflik nama 
 
 import (
 	"encoding/json"
+	"errors"
+	"github.com/TubagusAldiMY/Go-React-ComicReader-Be/internal/core/domain"
+	"github.com/go-chi/chi/v5"
 	"log"
 	"net/http"
 
@@ -72,5 +75,31 @@ func (h *GenreHandler) CreateGenre(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated) // Status 201 Created
 	if err := json.NewEncoder(w).Encode(createdGenre); err != nil {
 		log.Printf("GenreHandler: Error encoding created genre to JSON: %v\n", err)
+	}
+}
+
+// GetGenreBySlug menangani request untuk mendapatkan satu genre berdasarkan slug.
+func (h *GenreHandler) GetGenreBySlug(w http.ResponseWriter, r *http.Request) {
+	slug := chi.URLParam(r, "genreSlug") // Ambil {genreSlug} dari URL
+	if slug == "" {
+		http.Error(w, "Genre slug is required", http.StatusBadRequest)
+		return
+	}
+
+	genre, err := h.genreService.FindGenreBySlug(r.Context(), slug)
+	if err != nil {
+		log.Printf("GenreHandler: Error calling genreService.FindGenreBySlug for slug %s: %v\n", slug, err)
+		if errors.Is(err, domain.ErrDataNotFound) {
+			http.Error(w, "Genre not found", http.StatusNotFound) // HTTP 404
+		} else {
+			http.Error(w, "Failed to retrieve genre", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(genre); err != nil {
+		log.Printf("GenreHandler: Error encoding genre to JSON: %v\n", err)
 	}
 }

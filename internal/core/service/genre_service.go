@@ -77,3 +77,14 @@ func (s *genreService) CreateNewGenre(ctx context.Context, name string) (*domain
 
 	return newGenre, nil
 }
+
+func (s *genreService) FindGenreBySlug(ctx context.Context, slug string) (*domain.Genre, error) {
+	log.Printf("GenreService: Call FindGenreBySlug with slug: %s\n", slug)
+	genre, err := s.genreRepo.GetBySlug(ctx, slug)
+	if err != nil {
+		// Tidak perlu log lagi di sini jika repository sudah log
+		// Cukup teruskan errornya, atau bungkus jika perlu konteks tambahan
+		return nil, err // Ini akan meneruskan domain.ErrDataNotFound jika itu errornya
+	}
+	return genre, nil
+}
