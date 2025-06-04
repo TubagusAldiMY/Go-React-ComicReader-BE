@@ -50,3 +50,14 @@ func (r *genreRepository) List(ctx context.Context) ([]domain.Genre, error) {
 
 	return genres, nil
 }
+
+func (r *genreRepository) Create(ctx context.Context, genre *domain.Genre) error {
+	query := `INSERT INTO genres (id, name, slug, created_at, updated_at)
+	          VALUES ($1, $2, $3, $4, $5)`
+	_, err := r.db.Exec(ctx, query, genre.ID, genre.Name, genre.Slug, genre.CreatedAt, genre.UpdatedAt)
+	if err != nil {
+		log.Printf("Error creating genre in DB: %v\n", err)
+		return err
+	}
+	return nil
+}

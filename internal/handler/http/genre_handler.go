@@ -38,24 +38,39 @@ func (h *GenreHandler) ListGenres(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-/*
-// Kita bisa membuat helper untuk response JSON agar lebih konsisten
-func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
-	response, _ := json.Marshal(payload) // Error handling bisa ditambahkan
+// CreateGenre menangani request untuk membuat genre baru.
+func (h *GenreHandler) CreateGenre(w http.ResponseWriter, r *http.Request) {
+	var req CreateGenreRequest // DTO yang kita buat tadi
+	// Decode JSON request body ke struct CreateGenreRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Printf("GenreHandler: Error decoding request body: %v\n", err)
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	// Validasi sederhana (bisa menggunakan library validator nanti)
+	if req.Name == "" {
+		http.Error(w, "Genre name is required", http.StatusBadRequest)
+		return
+	}
+
+	createdGenre, err := h.genreService.CreateNewGenre(r.Context(), req.Name)
+	if err != nil {
+		log.Printf("GenreHandler: Error calling genreService.CreateNewGenre: %v\n", err)
+		// Cek tipe error spesifik dari service jika ada
+		if err.Error() == "genre name cannot be empty" { // Contoh penanganan error spesifik
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		} else {
+			http.Error(w, "Failed to create genre", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	// Kirim response sukses dengan data genre yang baru dibuat
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(code)
-	w.Write(response)
+	w.WriteHeader(http.StatusCreated) // Status 201 Created
+	if err := json.NewEncoder(w).Encode(createdGenre); err != nil {
+		log.Printf("GenreHandler: Error encoding created genre to JSON: %v\n", err)
+	}
 }
-
-func respondWithError(w http.ResponseWriter, code int, message string) {
-	respondWithJSON(w, code, map[string]string{"error": message})
-}
-
-// Maka di ListGenres:
-// if err != nil {
-//    log.Printf("GenreHandler: Error calling genreService.ListAll: %v\n", err)
-//    respondWithError(w, http.StatusInternalServerError, "Failed to retrieve genres")
-//    return
-// }
-// respondWithJSON(w, http.StatusOK, genres)
-*/

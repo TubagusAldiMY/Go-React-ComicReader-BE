@@ -9,6 +9,6 @@ import (
 
 // GenreRepository mendefinisikan operasi yang bisa dilakukan pada data genre.
 type GenreRepository interface {
-	// Di masa depan, kita bisa menambahkan method lain seperti Create, GetByID, Update, Delete
 	List(ctx context.Context) ([]domain.Genre, error)
+	Create(ctx context.Context, genre *domain.Genre) error // Method baru
 }

@@ -32,22 +32,20 @@ func NewRouter(db *pgxpool.Pool) http.Handler {
 		json.NewEncoder(w).Encode(response)
 	})
 
-	// === Inisialisasi Layer untuk Fitur Genre ===
-	// 1. Repository
+	// ... (inisialisasi middleware, health check, dan layers genre tetap sama) ...
 	genreRepo := database.NewGenreRepository(db)
-	// 2. Service
 	genreService := service.NewGenreService(genreRepo)
-	// 3. Handler
 	genreHandler := http_handler.NewGenreHandler(genreService)
 
-	// === Rute untuk API v1 ===
 	r.Route("/api/v1", func(r chi.Router) {
-		// Rute untuk Genre
-		r.Get("/genres", genreHandler.ListGenres)
+		// --- Rute untuk Admin ---
+		r.Route("/admin", func(r chi.Router) {
+			// (Di sini nanti kita bisa tambahkan middleware autentikasi admin)
+			r.Post("/genres", genreHandler.CreateGenre) // Endpoint baru
+		})
 
-		// Rute untuk Komik akan ditambahkan di sini nanti
-		// r.Get("/comics", comicHandler.ListComics)
-		// ... dan seterusnya
+		// --- Rute Publik ---
+		r.Get("/genres", genreHandler.ListGenres)
 	})
 
 	return r
