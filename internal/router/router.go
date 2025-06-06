@@ -6,6 +6,7 @@ import (
 	"github.com/TubagusAldiMY/Go-React-ComicReader-Be/internal/core/service"
 	http_handler "github.com/TubagusAldiMY/Go-React-ComicReader-Be/internal/handler/http"
 	"github.com/TubagusAldiMY/Go-React-ComicReader-Be/internal/platform/database"
+	"github.com/rs/cors"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -17,6 +18,18 @@ import (
 // Sekarang menerima *pgxpool.Pool sebagai argumen.
 func NewRouter(db *pgxpool.Pool) http.Handler {
 	r := chi.NewRouter()
+
+	// === Konfigurasi CORS ===
+	// Izinkan request dari origin frontend development Anda
+	corsMiddleware := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:5173", "http://127.0.0.1:5173"}, // Sesuaikan port jika Vite menggunakan port lain
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           300, // Waktu cache preflight request dalam detik
+	})
+	r.Use(corsMiddleware.Handler)
 
 	// Middleware dasar
 	r.Use(middleware.RequestID)
