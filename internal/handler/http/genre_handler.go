@@ -103,3 +103,31 @@ func (h *GenreHandler) GetGenreBySlug(w http.ResponseWriter, r *http.Request) {
 		log.Printf("GenreHandler: Error encoding genre to JSON: %v\n", err)
 	}
 }
+
+func (h *GenreHandler) UpdateGenre(w http.ResponseWriter, r *http.Request) {
+	slug := chi.URLParam(r, "genreSlug")
+
+	var req UpdateGenreRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	updatedGenre, err := h.genreService.UpdateGenre(r.Context(), slug, req.Name)
+	if err != nil {
+		log.Printf("GenreHandler: Error calling genreService.UpdateGenre for slug %s: %v\n", slug, err)
+		if errors.Is(err, domain.ErrDataNotFound) {
+			http.Error(w, "Genre not found", http.StatusNotFound)
+		} else if errors.Is(err, domain.ErrValidationFailed) {
+			http.Error(w, "Invalid genre name", http.StatusBadRequest)
+		} else {
+			http.Error(w, "Failed to update genre", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK) // Status 200 OK untuk update yang berhasil
+	json.NewEncoder(w).Encode(updatedGenre)
+}

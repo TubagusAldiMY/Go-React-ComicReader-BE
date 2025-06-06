@@ -12,4 +12,5 @@ type GenreRepository interface {
 	List(ctx context.Context) ([]domain.Genre, error)
 	Create(ctx context.Context, genre *domain.Genre) error
 	GetBySlug(ctx context.Context, slug string) (*domain.Genre, error)
+	Update(ctx context.Context, genre *domain.Genre) error
 }

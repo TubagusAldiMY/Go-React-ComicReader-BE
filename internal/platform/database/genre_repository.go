@@ -80,3 +80,18 @@ func (r *genreRepository) GetBySlug(ctx context.Context, slug string) (*domain.G
 	}
 	return &g, nil
 }
+
+// Update memperbarui data genre di database berdasarkan ID.
+func (r *genreRepository) Update(ctx context.Context, genre *domain.Genre) error {
+	query := `UPDATE genres SET name = $1, slug = $2, updated_at = $3 WHERE id = $4`
+	cmdTag, err := r.db.Exec(ctx, query, genre.Name, genre.Slug, genre.UpdatedAt, genre.ID)
+	if err != nil {
+		log.Printf("Error updating genre in DB: %v\n", err)
+		return err
+	}
+	if cmdTag.RowsAffected() == 0 {
+		log.Printf("No rows affected when updating genre with ID %s\n", genre.ID)
+		return domain.ErrDataNotFound // Gunakan error domain jika tidak ada baris yang terpengaruh
+	}
+	return nil
+}

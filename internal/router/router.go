@@ -41,7 +41,8 @@ func NewRouter(db *pgxpool.Pool) http.Handler {
 		// --- Rute untuk Admin ---
 		r.Route("/admin", func(r chi.Router) {
 			// (Di sini nanti kita bisa tambahkan middleware autentikasi admin)
-			r.Post("/genres", genreHandler.CreateGenre) // Endpoint baru
+			r.Post("/genres", genreHandler.CreateGenre)
+			r.Put("/genres/{genreSlug}", genreHandler.UpdateGenre)
 		})
 
 		// --- Rute Publik ---

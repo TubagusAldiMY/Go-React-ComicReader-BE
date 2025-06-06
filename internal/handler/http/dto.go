@@ -5,3 +5,8 @@ package http_handler // atau package yang sesuai dengan handler Anda
 type CreateGenreRequest struct {
 	Name string `json:"name" validate:"required"` // Kita akan tambahkan validasi nanti
 }
+
+// UpdateGenreRequest adalah DTO untuk request pembaruan genre.
+type UpdateGenreRequest struct {
+	Name string `json:"name" validate:"required"`
+}

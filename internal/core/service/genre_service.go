@@ -88,3 +88,33 @@ func (s *genreService) FindGenreBySlug(ctx context.Context, slug string) (*domai
 	}
 	return genre, nil
 }
+
+func (s *genreService) UpdateGenre(ctx context.Context, slug string, newName string) (*domain.Genre, error) {
+	log.Printf("GenreService: Call UpdateGenre for slug: %s\n", slug)
+
+	// 1. Ambil data genre yang ada
+	existingGenre, err := s.genreRepo.GetBySlug(ctx, slug)
+	if err != nil {
+		// Error sudah di-handle di repository (termasuk ErrDataNotFound)
+		return nil, err
+	}
+
+	// 2. Lakukan validasi
+	if strings.TrimSpace(newName) == "" {
+		return nil, domain.ErrValidationFailed // Gunakan error domain
+	}
+
+	// 3. Modifikasi data
+	existingGenre.Name = newName
+	existingGenre.Slug = generateSlug(newName) // Kita generate slug baru juga
+	existingGenre.UpdatedAt = time.Now()
+	// Cek duplikasi slug baru bisa ditambahkan di sini jika perlu
+
+	// 4. Simpan perubahan ke repository
+	err = s.genreRepo.Update(ctx, existingGenre)
+	if err != nil {
+		return nil, err
+	}
+
+	return existingGenre, nil
+}
