@@ -147,6 +147,5 @@ func (h *GenreHandler) DeleteGenre(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Untuk DELETE yang berhasil, respons terbaik adalah 204 No Content.
 	w.WriteHeader(http.StatusNoContent)
 }

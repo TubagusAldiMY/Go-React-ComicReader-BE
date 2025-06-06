@@ -53,13 +53,3 @@ func NewRouter(db *pgxpool.Pool) http.Handler {
 
 	return r
 }
-
-/*
-// Contoh untuk rute API v1 (akan kita buat nanti)
-// func apiV1Routes(comicHandler *http_handler.ComicHandler) http.Handler {
-// r := chi.NewRouter()
-// r.Get("/comics", comicHandler.GetAllComics)
-// ... tambahkan rute lain di sini
-// return r
-// }
-*/
