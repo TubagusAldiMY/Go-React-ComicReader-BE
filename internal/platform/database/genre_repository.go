@@ -95,3 +95,19 @@ func (r *genreRepository) Update(ctx context.Context, genre *domain.Genre) error
 	}
 	return nil
 }
+
+// DeleteBySlug menghapus genre dari database berdasarkan slug-nya.
+func (r *genreRepository) DeleteBySlug(ctx context.Context, slug string) error {
+	query := `DELETE FROM genres WHERE slug = $1`
+	cmdTag, err := r.db.Exec(ctx, query, slug)
+	if err != nil {
+		log.Printf("Error deleting genre with slug %s from DB: %v\n", slug, err)
+		return err
+	}
+	// Jika tidak ada baris yang terpengaruh, berarti data tidak ditemukan
+	if cmdTag.RowsAffected() == 0 {
+		log.Printf("No rows affected when deleting genre with slug %s\n", slug)
+		return domain.ErrDataNotFound
+	}
+	return nil
+}

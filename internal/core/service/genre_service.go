@@ -118,3 +118,11 @@ func (s *genreService) UpdateGenre(ctx context.Context, slug string, newName str
 
 	return existingGenre, nil
 }
+
+func (s *genreService) DeleteGenre(ctx context.Context, slug string) error {
+	log.Printf("GenreService: Call DeleteGenre for slug: %s\n", slug)
+	// Service ini cukup meneruskan panggilan ke repository.
+	// Logika tambahan (misalnya, memeriksa apakah genre masih digunakan oleh komik)
+	// bisa ditambahkan di sini di masa depan.
+	return s.genreRepo.DeleteBySlug(ctx, slug)
+}

@@ -13,4 +13,5 @@ type GenreService interface {
 	CreateNewGenre(ctx context.Context, name string) (*domain.Genre, error)
 	FindGenreBySlug(ctx context.Context, slug string) (*domain.Genre, error)
 	UpdateGenre(ctx context.Context, slug string, newName string) (*domain.Genre, error)
+	DeleteGenre(ctx context.Context, slug string) error
 }

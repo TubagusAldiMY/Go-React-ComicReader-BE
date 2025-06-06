@@ -43,6 +43,7 @@ func NewRouter(db *pgxpool.Pool) http.Handler {
 			// (Di sini nanti kita bisa tambahkan middleware autentikasi admin)
 			r.Post("/genres", genreHandler.CreateGenre)
 			r.Put("/genres/{genreSlug}", genreHandler.UpdateGenre)
+			r.Delete("/genres/{genreSlug}", genreHandler.DeleteGenre)
 		})
 
 		// --- Rute Publik ---

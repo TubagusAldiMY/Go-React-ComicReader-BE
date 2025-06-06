@@ -131,3 +131,22 @@ func (h *GenreHandler) UpdateGenre(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK) // Status 200 OK untuk update yang berhasil
 	json.NewEncoder(w).Encode(updatedGenre)
 }
+
+// DeleteGenre menangani request untuk menghapus genre.
+func (h *GenreHandler) DeleteGenre(w http.ResponseWriter, r *http.Request) {
+	slug := chi.URLParam(r, "genreSlug")
+
+	err := h.genreService.DeleteGenre(r.Context(), slug)
+	if err != nil {
+		log.Printf("GenreHandler: Error calling genreService.DeleteGenre for slug %s: %v\n", slug, err)
+		if errors.Is(err, domain.ErrDataNotFound) {
+			http.Error(w, "Genre not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "Failed to delete genre", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	// Untuk DELETE yang berhasil, respons terbaik adalah 204 No Content.
+	w.WriteHeader(http.StatusNoContent)
+}
